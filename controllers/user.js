@@ -4,7 +4,7 @@ module.exports = {
   // eslint-disable-next-line no-unused-vars
   google : async(req,res)=>{
     try {
-      const propertyId = "**************"; //your property ID
+      const propertyId = 361280757; //your property ID
       const {website } = req.body
 
 const date1= Date.now()
@@ -17,7 +17,7 @@ const day = String(date.getDate()).padStart(2, '0');
 
 // Form the "yyyy-mm-dd" date format
 const formattedDate = `${year}-${month}-${day}`;
-  const startDate = "2023-10-20";
+  const startDate = "2023-10-24";
   const endDate = formattedDate;
 
   // const website = "ahmadimran34"
@@ -28,16 +28,7 @@ const data =await fetchGoogleAnalyticsData(
   endDate,
   website
 );
-
-// Handle the result (data or error) as needed
-if (data.error) {
-  console.error("An error occurred:", data.error);
-  // Handle the error
-} else {
-  // Process the data
-  console.log(data.response2); // response2 data
-}
-return res.status(200).json({ response2: data.response2 });
+return res.status(200).json( data );
 
     } catch (error) {
       console.log(error)
