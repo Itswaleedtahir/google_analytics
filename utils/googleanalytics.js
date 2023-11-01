@@ -8,17 +8,37 @@ const analyticsDataClient = new BetaAnalyticsDataClient({
   },
 });
 
-async function fetchGoogleAnalyticsData(propertyId, startDate, endDate, website) {
+async function fetchAndCombineGoogleAnalyticsData(
+  propertyId,
+  startDate,
+  endDate,
+  website
+) {
   try {
-
     const [response2] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
       dateRanges: [{ startDate, endDate }],
-      dimensions: [{ name: "eventName" }],
+      dimensions: [{ name: 'landingPage' }],
       metrics: [
         { name: "activeUsers" },
         { name: "totalUsers" },
         { name: "newUsers" },
+      ],
+      dimensionFilter: {
+        filter: {
+          fieldName: "landingPage",
+          stringFilter: {
+            value: `/agent-profile/${website}`,
+          },
+        },
+      },
+    });
+
+    const [response] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: 'eventName' }],
+      metrics: [
         { name: "eventCount" },
       ],
       dimensionFilter: {
@@ -28,41 +48,37 @@ async function fetchGoogleAnalyticsData(propertyId, startDate, endDate, website)
             value: website,
           },
         },
-      }});
+      },
+    });
 
-    if (response2 && response2.rows && response2.rows.length > 0) {
-      const metricValues2 = response2.rows[0].metricValues;
+    // Initialize the combined response with default values
+    const combinedResponse = {
+      totalUsers: 0,
+      activeUsers: 0,
+      newUsers: 0,
+      eventCount: 0,
+    };
 
-      const activeUsers2 = metricValues2[0].value;
-      const totalUsers2 = metricValues2[1].value;
-      const newUsers2 = metricValues2[2].value;
-      const eventCount2 = metricValues2[3].value;
-
-      const metricValuesObject2 = {
-        activeUsers: activeUsers2,
-        totalUsers: totalUsers2,
-        newUsers: newUsers2,
-        eventCount: eventCount2,
-      };
-      
-      return {
-        response2: metricValuesObject2,
-      };
-    } else {
-      const metricValuesObject2 = {
-        activeUsers: "0",
-        totalUsers: "0",
-        newUsers: "0",
-        eventCount: "0",
-      };
-      return {
-        response2: metricValuesObject2,
-      };
+    // If response2 contains data, update the combined response
+    if (
+      response2 &&
+      response2.rows &&
+      response2.rows.length > 0 &&
+      response2.rows[0].metricValues
+    ) {
+      combinedResponse.activeUsers = parseInt(response2.rows[0].metricValues[0].value);
+      combinedResponse.totalUsers = parseInt(response2.rows[0].metricValues[1].value);
+      combinedResponse.newUsers = parseInt(response2.rows[0].metricValues[2].value);
     }
-  } catch (error) {
-    console.log(error);
-    return { error: "An error occurred while fetching data." };
-  }
-}
 
-module.exports = fetchGoogleAnalyticsData;
+    // If response contains data, update the combined response
+    if (response && response.rows && response.rows.length > 0 && response.rows[0].metricValues) {
+      combinedResponse.eventCount = parseInt(response.rows[0].metricValues[0].value);
+    }
+
+    return combinedResponse;
+  } catch (err) {
+    console.log(err);
+  }}
+
+  module.exports = fetchAndCombineGoogleAnalyticsData
