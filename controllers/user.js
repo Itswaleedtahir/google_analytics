@@ -21,7 +21,6 @@ const formattedDate = `${year}-${month}-${day}`;
   const endDate = formattedDate;
 
   // const website = "ahmadimran34"
-
 const data =await fetchGoogleAnalyticsData(
   propertyId,
   startDate,
